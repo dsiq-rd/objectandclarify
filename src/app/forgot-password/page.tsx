@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { z } from "zod";
+import toast from "react-hot-toast";
 
 const forgotPasswordSchema = z.object({
   email: z.string().email("Please enter a valid email address."),
@@ -10,12 +11,13 @@ const forgotPasswordSchema = z.object({
 export default function ForgotPasswordPage() {
   const [email, setEmail] = useState("");
   const [error, setError] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    const result = forgotPasswordSchema.safeParse({ email });
 
+    const result = forgotPasswordSchema.safeParse({ email });
     if (!result.success) {
       setError(result.error.errors[0].message);
       setSuccess(false);
@@ -23,10 +25,14 @@ export default function ForgotPasswordPage() {
     }
 
     setError(null);
-    setSuccess(true);
+    setLoading(true);
 
-    // placeholder for backend integration later
-    console.log("Password reset link would be sent to:", email);
+    // Simulate an API call delay
+    setTimeout(() => {
+      setLoading(false);
+      setSuccess(true);
+      toast.success("If this email exists, a reset link has been sent! 📩");
+    }, 1200);
   };
 
   return (
@@ -39,10 +45,7 @@ export default function ForgotPasswordPage() {
         {!success ? (
           <form onSubmit={handleSubmit} className="space-y-5">
             <div>
-              <label
-                htmlFor="email"
-                className="block text-sm font-medium text-gray-700"
-              >
+              <label htmlFor="email" className="block text-sm font-medium text-gray-700">
                 Email address
               </label>
               <input
@@ -51,16 +54,22 @@ export default function ForgotPasswordPage() {
                 type="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                className="mt-1 w-full rounded-md border border-gray-300 p-2 focus:border-blue-500 focus:ring-2 focus:ring-blue-100 outline-none"
+                disabled={loading}
+                className="mt-1 w-full rounded-md border border-gray-300 p-2 focus:border-blue-500 focus:ring-2 focus:ring-blue-100 outline-none disabled:bg-gray-100"
               />
               {error && <p className="mt-1 text-sm text-red-500">{error}</p>}
             </div>
 
             <button
               type="submit"
-              className="w-full rounded-md bg-blue-600 py-2 text-white font-medium hover:bg-blue-700 transition"
+              disabled={loading}
+              className={`w-full rounded-md py-2 text-white font-medium transition ${
+                loading
+                  ? "bg-blue-400 cursor-not-allowed"
+                  : "bg-blue-600 hover:bg-blue-700"
+              }`}
             >
-              Send reset link
+              {loading ? "Sending reset link..." : "Send reset link"}
             </button>
           </form>
         ) : (
@@ -68,10 +77,7 @@ export default function ForgotPasswordPage() {
             <p className="text-green-600 font-medium">
               ✅ If this email exists, a password reset link has been sent.
             </p>
-            <a
-              href="/signin"
-              className="inline-block text-blue-600 hover:underline"
-            >
+            <a href="/signin" className="inline-block text-blue-600 hover:underline">
               Back to Sign in
             </a>
           </div>

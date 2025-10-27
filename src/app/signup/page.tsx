@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { z } from "zod";
+import toast from "react-hot-toast";
 
 const signUpSchema = z
   .object({
@@ -22,17 +23,19 @@ export default function SignUpPage() {
     password: "",
     confirm: "",
   });
+
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const [loading, setLoading] = useState(false);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     setForm((prev) => ({ ...prev, [name]: value }));
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    const result = signUpSchema.safeParse(form);
 
+    const result = signUpSchema.safeParse(form);
     if (!result.success) {
       const fieldErrors = result.error.flatten().fieldErrors;
       setErrors({
@@ -45,7 +48,13 @@ export default function SignUpPage() {
     }
 
     setErrors({});
-    alert(`Account created for ${form.name} (${form.email})`);
+    setLoading(true);
+
+    // Simulate an API delay
+    setTimeout(() => {
+      toast.success(`Account created for ${form.name}! 🎉`);
+      setLoading(false);
+    }, 1000);
   };
 
   return (
@@ -70,7 +79,8 @@ export default function SignUpPage() {
                 type={field.includes("password") ? "password" : "text"}
                 value={(form as any)[field]}
                 onChange={handleChange}
-                className="mt-1 w-full rounded-md border border-gray-300 p-2 focus:border-blue-500 focus:ring-2 focus:ring-blue-100 outline-none"
+                disabled={loading}
+                className="mt-1 w-full rounded-md border border-gray-300 p-2 focus:border-blue-500 focus:ring-2 focus:ring-blue-100 outline-none disabled:bg-gray-100"
               />
               {errors[field] && (
                 <p className="mt-1 text-sm text-red-500">{errors[field]}</p>
@@ -80,18 +90,23 @@ export default function SignUpPage() {
 
           <button
             type="submit"
-            className="w-full rounded-md bg-blue-600 py-2 text-white font-medium hover:bg-blue-700 transition"
+            disabled={loading}
+            className={`w-full rounded-md py-2 text-white font-medium transition ${
+              loading
+                ? "bg-blue-400 cursor-not-allowed"
+                : "bg-blue-600 hover:bg-blue-700"
+            }`}
           >
-            Sign up
+            {loading ? "Creating account..." : "Sign up"}
           </button>
-        </form>
 
-        <p className="mt-6 text-center text-sm text-gray-600">
-          Already have an account?{" "}
-          <a href="/signin" className="text-blue-600 hover:underline">
-            Sign in
-          </a>
-        </p>
+          <p className="mt-6 text-center text-sm text-gray-600">
+            Already have an account?{" "}
+            <a href="/signin" className="text-blue-600 hover:underline">
+              Sign in
+            </a>
+          </p>
+        </form>
       </div>
     </main>
   );
