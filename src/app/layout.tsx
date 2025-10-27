@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import "./globals.css";
-import Navbar from "@/components/Navbar";
+import { AuthProvider } from "@/context/AuthContext";
 
 export const metadata: Metadata = {
   title: "Object & Clarify",
@@ -14,9 +14,8 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
-      <body className="bg-gray-50">
-        <Navbar />
-        <main className="container mx-auto p-4">{children}</main>
+      <body>
+        <AuthProvider>{children}</AuthProvider>
       </body>
     </html>
   );

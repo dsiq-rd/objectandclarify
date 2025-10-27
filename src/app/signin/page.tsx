@@ -1,8 +1,8 @@
 "use client";
 
-import { format } from "path";
+import { useAuth } from "@/context/AuthContext";
 import { useState } from "react";
-import { set, z } from "zod";
+import { z } from "zod";
 
 const signInSchema = z.object({
   email: z.string().email("Please enter a valid email address."),
@@ -19,21 +19,21 @@ export default function SignInPage() {
     const { name, value } = e.target;
     setForm((prev) => ({ ...prev, [name]: value }));
   };
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
     const result = signInSchema.safeParse(form);
     if (!result.success) {
-      const fieldErrors: { email?: string; password?: string } = {};
+      const fieldErrors = result.error.flatten().fieldErrors;
       setErrors({
         email: fieldErrors.email?.[0],
         password: fieldErrors.password?.[0],
       });
       return;
-
-      setErrors({});
-      alert(`Signed in as ${form.email}!`);
     }
+
+    setErrors({});
+    await login(form.email, form.password);
   };
 
   return (
@@ -90,6 +90,14 @@ export default function SignInPage() {
           >
             Sign in
           </button>
+          <div className="mt-3 text-center">
+            <a
+              href="/forgot-password"
+              className="text-blue-600 hover:underline text-sm"
+            >
+              Forgot password?
+            </a>
+          </div>
         </form>
 
         <p className="mt-6 text-center text-sm text-gray-600">
